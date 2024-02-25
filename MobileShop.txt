@@ -1,0 +1,64 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity ^0.8.22;
+
+contract mobileShop {
+    uint public counter = 0;
+
+    struct product {
+        uint id;
+        string name;
+        uint price;
+        address payable owner;
+        bool sold;
+    }
+    mapping(uint => product) public Products;
+
+    //_______   events  ________
+    event createProduct(
+        uint id,
+        string name,
+        uint price,
+        address owner,
+        bool sold
+    );
+    event saleProduct(
+        uint id,
+        string name,
+        uint price,
+        address owner,
+        bool sold
+    );
+
+// ______   create the product function  ______
+    function productCreate(string memory _name, uint _price) public {
+        require(bytes(_name).length>0, "ERROR, Enter a valid name!");
+        require(_price>0, "ERROR, Enter a valid price!");
+
+        counter++;
+
+        Products[counter] = product(counter, _name, _price, payable(msg.sender), false);
+
+        emit createProduct(counter, _name, _price, payable(msg.sender), false );
+    }
+
+// ______   sale the product function  ______
+    function productSale(uint _id) public payable {
+        product memory productItem = Products[_id];
+
+        require(productItem.id>0 && productItem.id <= counter, "ERROR, ID is not valid!");
+
+        address payable  seller = productItem.owner;
+
+        require(msg.value >= productItem.price, "ERROR, eth is not valid! ");
+        require(msg.sender != seller , "ERROR, Seller can not buy the product!");
+
+        productItem.owner = payable(msg.sender); 
+        productItem.sold = true;
+
+        Products[_id] = productItem;
+ 
+        seller.transfer(msg.value);
+
+        emit saleProduct(_id, productItem.name, productItem.price, msg.sender, true);
+    } 
+}
