@@ -1,1 +1,3 @@
-spart contract sample
+<h2>
+  smart contract sample
+</h2>
